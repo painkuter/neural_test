@@ -1,11 +1,8 @@
 package main
 
 import (
-	"fmt"
-	//mat"github.com/mitsuse/matrix-go"
 	"math"
 
-	//"github.com/mitsuse/matrix-go/dense"
 	"gonum.org/v1/gonum/mat"
 )
 
@@ -15,20 +12,32 @@ const (
 	n            = 2 // hidden layer
 )
 
-var train = [][]float64{{0, 0, 1}}
+type Input struct {
+	Row             []float64
+	ExpectedPredict float64
+}
+
+var train = []Input{
+	{[]float64{0, 0, 0}, 0},
+	{[]float64{0, 0, 1}, 1},
+	{[]float64{0, 1, 0}, 0},
+	{[]float64{0, 1, 1}, 0},
+	{[]float64{1, 0, 0}, 1},
+	{[]float64{1, 0, 1}, 1},
+	{[]float64{1, 1, 0}, 0},
+	{[]float64{1, 1, 1}, 0},
+}
 
 func main() {
 	net := Init(m, n)
 
-	in := mat.NewDense(m, 1, train[0])
+	in := mat.NewDense(m, 1, train[0].Row)
 	net.Predict(in)
 }
 
 type Network struct {
-	FirstLvlWeight *mat.Dense
-	//FirstLvlWeight  [][]float64
+	FirstLvlWeight  *mat.Dense
 	HiddenLvlWeight *mat.Dense
-	//HiddenLvlWeight []float64
 }
 
 func Init(m, n int) Network {
@@ -38,15 +47,24 @@ func Init(m, n int) Network {
 	return net
 }
 
+func (this Network) Train(in, actualPredict, expectedPredict float64) {
+	errLayer2 := actualPredict - expectedPredict
+	gradient2 := actualPredict * (1 - actualPredict)
+	weightDelta2 := mat.NewDense(this.FirstLvlWeight.RawMatrix().Rows, 1, nil)
+
+	this.HiddenLvlWeight
+	return
+}
+
 func (this Network) Predict(in *mat.Dense) {
 	in1 := mat.NewDense(this.FirstLvlWeight.RawMatrix().Rows, 1, nil)
 	in1.Mul(this.FirstLvlWeight, in)
 	out1 := SigmoidMap(in1)
 
-	Print(this.FirstLvlWeight)
-	Print(in)
-	Print(out1)
-	Print(this.HiddenLvlWeight)
+	//Print(this.FirstLvlWeight)
+	//Print(in)
+	//Print(out1)
+	//Print(this.HiddenLvlWeight)
 
 	in2 := mat.NewDense(1, 1, nil)
 	in2.Mul(this.HiddenLvlWeight, out1)
@@ -67,14 +85,4 @@ func SigmoidMap(in *mat.Dense) *mat.Dense {
 		out.RawMatrix().Data[i] = Sigmoid(in.RawMatrix().Data[i])
 	}
 	return out
-}
-
-func Print(in *mat.Dense) {
-	fmt.Printf("Rows: %v, Cols: %v \n", in.RawMatrix().Rows, in.RawMatrix().Cols)
-	for i := 0; i < in.RawMatrix().Rows; i++ {
-		for j := 0; j < in.RawMatrix().Cols; j++ {
-			fmt.Printf("%3f\t", in.RawMatrix().Data[i*in.RawMatrix().Cols+j])
-		}
-		fmt.Println()
-	}
 }
