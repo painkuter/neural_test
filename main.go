@@ -32,7 +32,9 @@ func main() {
 	net := Init(m, n)
 
 	in := mat.NewDense(m, 1, train[0].Row)
-	net.Predict(in)
+	out := net.Predict(in)
+
+	net.Train(out, train[0].ExpectedPredict)
 }
 
 type Network struct {
@@ -47,16 +49,21 @@ func Init(m, n int) Network {
 	return net
 }
 
-func (this Network) Train(in, actualPredict, expectedPredict float64) {
+func (this Network) Train(actualPredict *mat.Dense, expectedPredict float64) {
 	errLayer2 := actualPredict - expectedPredict
 	gradient2 := actualPredict * (1 - actualPredict)
 	weightDelta2 := mat.NewDense(this.FirstLvlWeight.RawMatrix().Rows, 1, nil)
+	weightDelta2.Mul(errLayer2, gradient2)
 
-	this.HiddenLvlWeight
+	weights := mat.NewDense(this.FirstLvlWeight.RawMatrix().Rows, 1, nil)
+	weights.Mul(weightDelta2, actualPredict)
+
+	Print(weights)
+	//this.HiddenLvlWeight
 	return
 }
 
-func (this Network) Predict(in *mat.Dense) {
+func (this Network) Predict(in *mat.Dense) *mat.Dense {
 	in1 := mat.NewDense(this.FirstLvlWeight.RawMatrix().Rows, 1, nil)
 	in1.Mul(this.FirstLvlWeight, in)
 	out1 := SigmoidMap(in1)
@@ -70,6 +77,7 @@ func (this Network) Predict(in *mat.Dense) {
 	in2.Mul(this.HiddenLvlWeight, out1)
 	out2 := SigmoidMap(in2)
 	Print(out2)
+	return out2
 }
 
 func Sigmoid(x float64) float64 {
