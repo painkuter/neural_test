@@ -7,6 +7,7 @@ import (
 )
 
 const (
+	epochs       = 5000
 	learningRate = 0.1
 	m            = 3 // first layer
 	n            = 2 // hidden layer
@@ -34,7 +35,11 @@ func main() {
 	in := mat.NewDense(m, 1, train[0].Row)
 	out := net.Predict(in)
 
-	net.Train(out, train[0].ExpectedPredict)
+	expectedPredict := mat.NewDense(1, 1, []float64{train[0].ExpectedPredict})
+	net.Train(out, expectedPredict)
+	for i := 0; i < epochs; i++ {
+
+	}
 }
 
 type Network struct {
@@ -49,16 +54,25 @@ func Init(m, n int) Network {
 	return net
 }
 
-func (this Network) Train(actualPredict *mat.Dense, expectedPredict float64) {
-	errLayer2 := actualPredict - expectedPredict
-	gradient2 := actualPredict * (1 - actualPredict)
-	weightDelta2 := mat.NewDense(this.FirstLvlWeight.RawMatrix().Rows, 1, nil)
-	weightDelta2.Mul(errLayer2, gradient2)
+func (this Network) Train(actualPredict, expectedPredict *mat.Dense /*, expectedPredict float64*/) {
+	errLayer2 := mat.NewDense(actualPredict.RawMatrix().Rows, 1, nil)
+	//gradient2 := mat.NewDense(actualPredict.RawMatrix().Rows, 1, nil)
+	expectedPredict.Scale(-1, expectedPredict)
+	errLayer2.Add(actualPredict, expectedPredict)
 
-	weights := mat.NewDense(this.FirstLvlWeight.RawMatrix().Rows, 1, nil)
-	weights.Mul(weightDelta2, actualPredict)
+	Print(actualPredict)
+	Print(expectedPredict)
+	Print(errLayer2)
 
-	Print(weights)
+	//errLayer2 := actualPredict - expectedPredict
+	//gradient2 := actualPredict * (1 - actualPredict)
+	//weightDelta2 := mat.NewDense(this.FirstLvlWeight.RawMatrix().Rows, 1, nil)
+	//weightDelta2.Mul(errLayer2, gradient2)
+	//
+	//weights := mat.NewDense(this.FirstLvlWeight.RawMatrix().Rows, 1, nil)
+	//weights.Mul(weightDelta2, actualPredict)
+	//
+	//Print(weights)
 	//this.HiddenLvlWeight
 	return
 }
@@ -76,7 +90,6 @@ func (this Network) Predict(in *mat.Dense) *mat.Dense {
 	in2 := mat.NewDense(1, 1, nil)
 	in2.Mul(this.HiddenLvlWeight, out1)
 	out2 := SigmoidMap(in2)
-	Print(out2)
 	return out2
 }
 
