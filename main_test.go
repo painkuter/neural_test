@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"gonum.org/v1/gonum/mat"
 )
 
 func TestGetRandWeights(t *testing.T) {
@@ -12,6 +13,11 @@ func TestGetRandWeights(t *testing.T) {
 
 func TestRound(t *testing.T) {
 	assert.Equal(t, Round(0.12345, .5, 2), 0.12, "Round")
+}
+
+func TestE(t *testing.T) {
+	expectedResult := mat.NewDense(3, 1, []float64{1, 1, 1})
+	assert.ObjectsAreEqual(E(3), expectedResult)
 }
 
 func Test(t *testing.T) {

@@ -17,6 +17,11 @@ type Input struct {
 	ExpectedPredict float64
 }
 
+type Network struct {
+	FirstLvlWeight  *mat.Dense
+	HiddenLvlWeight *mat.Dense
+}
+
 var train = []Input{
 	{[]float64{0, 0, 0}, 0},
 	{[]float64{0, 0, 1}, 1},
@@ -31,15 +36,40 @@ var train = []Input{
 func main() {
 	net := Init(m, n)
 
-	in := mat.NewDense(m, 1, train[0].Row)
-	out := net.Predict(in)
+	in1 := mat.NewDense(m, 1, train[0].Row)
+	actual := net.Predict(in1)
 
-	net.Train(out, train[0].ExpectedPredict)
+	net.Train(actual.At(0, 0), train[0].ExpectedPredict)
 }
 
-type Network struct {
-	FirstLvlWeight  *mat.Dense
-	HiddenLvlWeight *mat.Dense
+func (this Network) Train(actualPredict, expectedPredict float64) {
+	err1 := actualPredict - expectedPredict
+	gradient1 := actualPredict * (1 - actualPredict)
+	d_weight := err1 * gradient1 * (-1)
+
+	tmpWeights := mat.DenseCopyOf(this.HiddenLvlWeight)
+	tmpWeights.Scale(d_weight, tmpWeights)
+	this.HiddenLvlWeight.Add(this.HiddenLvlWeight, tmpWeights)
+
+	//
+	//weights := mat.NewDense(this.FirstLvlWeight.RawMatrix().Rows, 1, nil)
+	//weights.Mul(weightDelta2, actualPredict)
+
+	Print(this.HiddenLvlWeight)
+	//this.HiddenLvlWeight
+	return
+}
+
+func (this Network) Predict(in1 *mat.Dense) *mat.Dense {
+	out1 := mat.NewDense(this.FirstLvlWeight.RawMatrix().Rows, 1, nil)
+	out1.Mul(this.FirstLvlWeight, in1)
+	in2 := SigmoidMap(out1)
+
+	out2 := mat.NewDense(1, 1, nil)
+	out2.Mul(this.HiddenLvlWeight, in2)
+	actual := SigmoidMap(out2)
+	Print(actual)
+	return actual
 }
 
 func Init(m, n int) Network {
@@ -49,39 +79,12 @@ func Init(m, n int) Network {
 	return net
 }
 
-func (this Network) Train(actualPredict *mat.Dense, expectedPredict float64) {
-	errLayer2 := actualPredict - expectedPredict
-	gradient2 := actualPredict * (1 - actualPredict)
-	weightDelta2 := mat.NewDense(this.FirstLvlWeight.RawMatrix().Rows, 1, nil)
-	weightDelta2.Mul(errLayer2, gradient2)
-
-	weights := mat.NewDense(this.FirstLvlWeight.RawMatrix().Rows, 1, nil)
-	weights.Mul(weightDelta2, actualPredict)
-
-	Print(weights)
-	//this.HiddenLvlWeight
-	return
-}
-
-func (this Network) Predict(in *mat.Dense) *mat.Dense {
-	in1 := mat.NewDense(this.FirstLvlWeight.RawMatrix().Rows, 1, nil)
-	in1.Mul(this.FirstLvlWeight, in)
-	out1 := SigmoidMap(in1)
-
-	//Print(this.FirstLvlWeight)
-	//Print(in)
-	//Print(out1)
-	//Print(this.HiddenLvlWeight)
-
-	in2 := mat.NewDense(1, 1, nil)
-	in2.Mul(this.HiddenLvlWeight, out1)
-	out2 := SigmoidMap(in2)
-	Print(out2)
-	return out2
-}
-
 func Sigmoid(x float64) float64 {
 	return 1 / (1 + math.Exp(-x))
+}
+
+func SigmoidDx(x float64) float64 {
+	return Sigmoid(x) * (1 - Sigmoid(x))
 }
 
 func SigmoidMap(in *mat.Dense) *mat.Dense {
@@ -93,4 +96,25 @@ func SigmoidMap(in *mat.Dense) *mat.Dense {
 		out.RawMatrix().Data[i] = Sigmoid(in.RawMatrix().Data[i])
 	}
 	return out
+}
+
+func SigmoidMapDx(in *mat.Dense) *mat.Dense {
+	if in.RawMatrix().Cols != 1 {
+		panic("Wrong dimension")
+	}
+	out := mat.NewDense(in.RawMatrix().Rows, 1, nil)
+	for i := 0; i < in.RawMatrix().Rows; i++ {
+		out.RawMatrix().Data[i] = SigmoidDx(in.RawMatrix().Data[i])
+	}
+	return out
+}
+
+// E returns identity column by size
+func E(size int) *mat.Dense {
+	vector := make([]float64, 0, size)
+	for i := 0; i < size; i++ {
+		vector = append(vector, 1)
+	}
+	e := mat.NewDense(size, 1, vector)
+	return e
 }
