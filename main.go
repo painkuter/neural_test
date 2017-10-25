@@ -7,6 +7,7 @@ import (
 )
 
 const (
+	epochs       = 5000
 	learningRate = 0.1
 	m            = 3 // first layer
 	n            = 2 // hidden layer
@@ -40,6 +41,9 @@ func main() {
 	actual := net.Predict(in1)
 
 	net.Train(actual.At(0, 0), train[0].ExpectedPredict)
+	for i := 0; i < epochs; i++ {
+
+	}
 }
 
 func (this Network) Train(actualPredict, expectedPredict float64) {
