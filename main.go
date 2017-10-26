@@ -3,11 +3,12 @@ package main
 import (
 	"math"
 
+	"fmt"
 	"gonum.org/v1/gonum/mat"
 )
 
 const (
-	epochs       = 5000
+	epochs       = 500
 	learningRate = 0.1
 	m            = 3 // first layer
 	n            = 2 // hidden layer
@@ -37,30 +38,55 @@ var train = []Input{
 func main() {
 	net := Init(m, n)
 
+	//in1 := mat.NewDense(m, 1, train[0].Row)
+	//actual := net.Predict(in1)
+	//
+	//net.Train(actual.At(0, 0), train[0].ExpectedPredict)
+	for i := 0; i < epochs; i++ {
+		for _, elem := range train {
+			net.Train(elem)
+		}
+	}
+	fmt.Println("=======")
 	in1 := mat.NewDense(m, 1, train[0].Row)
 	actual := net.Predict(in1)
-
-	net.Train(actual.At(0, 0), train[0].ExpectedPredict)
-	for i := 0; i < epochs; i++ {
-
-	}
+	Print(actual)
 }
 
-func (this Network) Train(actualPredict, expectedPredict float64) {
-	err1 := actualPredict - expectedPredict
-	gradient1 := actualPredict * (1 - actualPredict)
-	d_weight := err1 * gradient1 * (-1)
+func (this Network) Train(train Input) {
+	in1 := mat.NewDense(m, 1, train.Row)
+	out1 := mat.NewDense(this.FirstLvlWeight.RawMatrix().Rows, 1, nil)
+	out1.Mul(this.FirstLvlWeight, in1)
+	in2 := SigmoidMap(out1)
 
-	tmpWeights := mat.DenseCopyOf(this.HiddenLvlWeight)
-	tmpWeights.Scale(d_weight, tmpWeights)
-	this.HiddenLvlWeight.Add(this.HiddenLvlWeight, tmpWeights)
+	out2 := mat.NewDense(1, 1, nil)
+	out2.Mul(this.HiddenLvlWeight, in2)
+	result := SigmoidMap(out2)
+	actual := result.At(0, 0)
+
+	err2 := actual - train.ExpectedPredict
+	gradient2 := actual * (1 - actual)
+	dWeight2 := err2 * gradient2
+
+	tmpWeights2 := mat.DenseCopyOf(this.HiddenLvlWeight)
+	tmpWeights2.Scale((-1)*dWeight2, tmpWeights2)
+	this.HiddenLvlWeight.Add(this.HiddenLvlWeight, tmpWeights2) //updated weights
+
+	err1 := mat.NewDense(1, n, nil)
+	err1.Scale(dWeight2, this.HiddenLvlWeight)
+	gradient1 := SigmoidMapDx(in2)
+	dWeight1 := mat.NewDense(1, n, nil)
+	dWeight1.Mul(err1, gradient1)
+	Print(dWeight1)
+
+	//tmpWeights1 := mat.DenseCopyOf(this.FirstLvlWeight)
+	//tmpWeights1.Mul(in1,)
 
 	//
 	//weights := mat.NewDense(this.FirstLvlWeight.RawMatrix().Rows, 1, nil)
 	//weights.Mul(weightDelta2, actualPredict)
 
 	Print(this.HiddenLvlWeight)
-	//this.HiddenLvlWeight
 	return
 }
 
@@ -72,7 +98,7 @@ func (this Network) Predict(in1 *mat.Dense) *mat.Dense {
 	out2 := mat.NewDense(1, 1, nil)
 	out2.Mul(this.HiddenLvlWeight, in2)
 	actual := SigmoidMap(out2)
-	Print(actual)
+	//Print(actual)
 	return actual
 }
 

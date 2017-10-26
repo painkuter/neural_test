@@ -1,14 +1,25 @@
-out1 = in1 * first_layer_weight
-in2 = sigmoid(out1)
+out1 = in1 * first_layer_weight | [n*m] * [m*1]
+in2 = sigmoid(out1) | [n*1]
 
-out2 = in2 * hidden_layer_weight
-actual = sigmoid(out2)
+out2 =  hidden_layer_weight * in2 | [1*n] * [n*1]
+actual = sigmoid(out2) | [1]
 
 =====================
 
-err1 = actual - expected
-d_weight_1 = err * actual * (1 - actual)
-new_hidden_layer_weight = hidden_layer_weight - in2 * d_weight * learning_rate
+err2 = actual - expected | [1]
+d_weight_2 = err2 * actual * (1 - actual) | [1]
+new_hidden_layer_weight = hidden_layer_weight - in2 * d_weight_2 * learning_rate | [1*n]
+
+err1 = d_weight_2 * new_hidden_layer_weight | [1*n]
+grad_1 = in2 * (1 - in2) | [n*1] * какого размера эта матрица?
+
+
+
+
+           error_layer_1 = weights_delta_layer_2 * self.weights_1_2
+           gradient_layer_1 = outputs_1 * (1 - outputs_1)
+           weights_delta_layer_1 = error_layer_1 * gradient_layer_1
+           self.weights_0_1 -= np.dot(inputs.reshape(len(inputs), 1), weights_delta_layer_1).T  * self.learning_rate
 
 
 
