@@ -11,11 +11,9 @@ import (
 
 func GetRandWeights(size int) []float64 {
 	weights := make([]float64, 0, size)
+	rand.Seed(time.Now().UnixNano())
 	for i := 0; i < size; i++ {
-		now := time.Now().UnixNano()
-		source := rand.NewSource(now)
-		randomizer := rand.New(source)
-		weights = append(weights, Round(randomizer.Float64(), .5, 2))
+		weights = append(weights, Round(rand.Float64(), .5, 4))
 	}
 	return weights
 }

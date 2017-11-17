@@ -7,8 +7,10 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+//go test -run GetRandWeights
 func TestGetRandWeights(t *testing.T) {
 	assert.Equal(t, len(GetRandWeights(6)), 6)
+	//fmt.Println(GetRandWeights(20))
 }
 
 func TestRound(t *testing.T) {
@@ -23,6 +25,24 @@ func TestE(t *testing.T) {
 func Test(t *testing.T) {
 	main()
 }
+
+/*
+func TestSum (t *testing.T){
+	a := mat.NewDense(2, 2, []float64{
+		1,0,
+		2,1,
+	})
+	b := mat.NewDense(2, 2, []float64{
+		1,0,
+		0,3,
+	})
+	Print(a)
+	Print(b)
+	b.Add(a.T(),b)
+	Print(a)
+	Print(b)
+}
+*/
 
 /*a := mat.NewDense(m, n, []float64{
 	.41, .42,
