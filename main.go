@@ -37,9 +37,9 @@ var train = []Input{
 }
 
 var train2 = append(train, Input{[]float64{1, 1, 1}, 1})
+var db = DB()
 
 func main() {
-	db := DB()
 	_, err := db.Exec("CREATE TABLE IF NOT EXISTS attempts (`id` INT(10) NOT NULL AUTO_INCREMENT, PRIMARY KEY (`id`))")
 	if err != nil {
 		panic(err)
@@ -47,6 +47,7 @@ func main() {
 	net := Init(n, m)
 	t := time.Now().UnixNano()
 
+	fmt.Printf("STARTING TRAINING WITH ON %v EPOCHS FOR %v INPUTS = %v\n", epochs, len(train), epochs*len(train))
 	for i := 0; i < epochs; i++ {
 		for _, elem := range train {
 			net.Train(elem)
@@ -117,8 +118,8 @@ func (this Network) Train(train Input) {
 
 	//inputs_1 = np.dot(self.weights_0_1, inputs)
 	in := mat.NewDense(m, 1, train.Row) // [m*1]
-	in1 := mat.NewDense(n, 1, nil)
-	in1.Mul(this.FirstLvlWeight, in)
+	in1 := mat.NewDense(n, 1, nil)      // [n*1]
+	in1.Mul(this.FirstLvlWeight, in)    // [n*m] * [m*1] = [n*1]
 	out1 := SigmoidMap(in1)
 	in2 := mat.NewDense(1, 1, nil)
 	in2.Mul(this.HiddenLvlWeight, out1)
@@ -143,7 +144,7 @@ func (this Network) Train(train Input) {
 	dWeight1 := mat.NewDense(1, n, nil)
 	dWeight1.MulElem(err1, grad1.T())
 	tmpWeights1 := mat.NewDense(m, n, nil) // [m*n]
-	tmpWeights1.Mul(in, dWeight1)          // [m*1] * [1*n]
+	tmpWeights1.Mul(in, dWeight1)          //TODO: проверить это [m*1] * [1*n]
 	tmpWeights1.Scale((-1)*learningRate, tmpWeights1)
 	this.FirstLvlWeight.Add(this.FirstLvlWeight, tmpWeights1.T())
 }

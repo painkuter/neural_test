@@ -1,0 +1,30 @@
+//перейти от создания новых матриц к использованию готовых
+==========
+Рассмотрим случай двухслойной сети:
+dim(FirstLayer) = n*m - матрица W1
+dim(HiddenLayer) = n*1 - матрица W2
+dim(input) = m
+learning_rate = const
+TRAIN:
+    in1 = W1*input
+    out1 = sigmoid(in1)
+
+    in2 = W2*out1
+    out2 = sigmoid(in2)
+
+    err2 = out2 - expected
+    grad2 = out2 * (1 - out2)
+    dW2 = err2 * grad2
+
+    tmp2 = out1.T //транспонирование
+    tmp2 = -1 * learning_rate * dW2 * tmp2
+    W2 += tmp2
+
+    err1 = dW2*W2
+    grad1 = out1 * (1 - out1)
+    dW1 = err1*grad1.T
+
+    tmp1 = (-1) * learning_rate * input * dW1
+    W1 += tmp1
+
+
