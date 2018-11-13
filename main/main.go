@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"neural_test/internal/datastruct"
 	"neural_test/internal/dbm"
 	"neural_test/internal/fn"
 
@@ -19,17 +20,12 @@ const (
 	vectorSize   = 3 // vector size
 )
 
-type Input struct {
-	Row             []float64
-	ExpectedPredict float64
-}
-
-type Network struct {
+type StartNetwork struct {
 	FirstLvlWeight  *mat.Dense
 	HiddenLvlWeight *mat.Dense
 }
 
-var train = []Input{
+var train = []datastruct.Input{
 	{[]float64{0, 0, 0}, 0},
 	{[]float64{0, 0, 1}, 0},
 	{[]float64{0, 1, 0}, 0},
@@ -40,7 +36,7 @@ var train = []Input{
 	//{[]float64{1, 1, 1}, 1},
 }
 
-var train2 = append(train, Input{[]float64{1, 1, 1}, 1})
+var train2 = append(train, datastruct.Input{[]float64{1, 1, 1}, 1})
 var db = dbm.DB()
 
 func main() {
@@ -84,7 +80,7 @@ func main() {
 	fmt.Printf("time %v ms\n", (time.Now().UnixNano()-t)/1000000)
 }
 
-func (this Network) Train(train Input) {
+func (this StartNetwork) Train(train datastruct.Input) {
 
 	in := mat.NewDense(m, 1, train.Row) // [m*1]
 	in1 := mat.NewDense(n, 1, nil)      // [n*1]
@@ -103,22 +99,22 @@ func (this Network) Train(train Input) {
 	dWeight2 := err2 * grad2
 	tmpWeights2 := mat.DenseCopyOf(out1.T()) //
 	tmpWeights2.Scale((-1)*dWeight2*learningRate, tmpWeights2)
-	this.HiddenLvlWeight.Add(this.HiddenLvlWeight, tmpWeights2) //updated weights
+	this.HiddenLvlWeight.Add(this.HiddenLvlWeight, tmpWeights2) // updated weights
 
-	//first layer
+	// first layer
 	err1 := mat.NewDense(1, n, nil)
 	err1.Scale(dWeight2, this.HiddenLvlWeight)
-	//gradient_layer_1 := SigmoidMapDx(outputs_1)
+	// gradient_layer_1 := SigmoidMapDx(outputs_1)
 	grad1 := fn.SigmoidMapDx(out1)
 	dWeight1 := mat.NewDense(1, n, nil)
 	dWeight1.MulElem(err1, grad1.T())
 	tmpWeights1 := mat.NewDense(m, n, nil) // [m*n]
-	tmpWeights1.Mul(in, dWeight1)          //TODO: проверить это [m*1] * [1*n]
+	tmpWeights1.Mul(in, dWeight1)          // TODO: проверить это [m*1] * [1*n]
 	tmpWeights1.Scale((-1)*learningRate, tmpWeights1)
 	this.FirstLvlWeight.Add(this.FirstLvlWeight, tmpWeights1.T())
 }
 
-func (this Network) Predict(in *mat.Dense) float64 {
+func (this StartNetwork) Predict(in *mat.Dense) float64 {
 	in1 := mat.NewDense(n, 1, nil)
 	in1.Mul(this.FirstLvlWeight, in)
 	out1 := fn.SigmoidMap(in1)
@@ -127,9 +123,9 @@ func (this Network) Predict(in *mat.Dense) float64 {
 	return fn.SigmoidMap(in2).At(0, 0)
 }
 
-func Init(n, m int) Network {
+func Init(n, m int) StartNetwork {
 
-	var net Network
+	var net StartNetwork
 	net.FirstLvlWeight = mat.NewDense(n, m, fn.GetRandWeights(n*m))
 	// net.FirstLvlWeight = mat.NewDense(n, m, []float64{0.79, 0.44, 0.43, 0.85, 0.43, 0.29})
 	net.HiddenLvlWeight = mat.NewDense(1, n, fn.GetRandWeights(n*1))

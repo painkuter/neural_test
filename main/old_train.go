@@ -1,6 +1,6 @@
 package main
 
-func (this Network) oldTrain(train Input) {
+func (this StartNetwork) oldTrain(train Input) {
 
 	////predict
 	//	in1 := mat.NewDense(m, 1, train.Row) //[m*1]
