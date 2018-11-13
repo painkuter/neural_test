@@ -1,27 +1,4 @@
 go get github.com/mitsuse/matrix-go
 go get gonum.org/v1/gonum/mat
 
-Train:
-
-    w - weights
-    in - inputs
-
-                 in1
-                 in2
-                 in3
- ==========================
-    w11 w12 w13 | out1
-    w21 w22 w23 | out2
-    -------------------
-                   sigmoid
-    -------------------
-                  IN1
-                  IN2
- ==========================
-          W1 W2 | OUT1
-    -------------------
-                    sigmoid
-                  actual
-
-   actual - expected = err1
-   dw1 = W1 - err1
+go mod

@@ -27,6 +27,7 @@ func getMySQL() string {
 }
 
 func DB() *sql.DB {
+	fmt.Println("Connecting to database")
 	var (
 		//dbConnect string
 		db  *sql.DB
