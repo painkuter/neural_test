@@ -80,14 +80,16 @@ func main() {
 	fmt.Printf("time %v ms\n", (time.Now().UnixNano()-t)/1000000)
 }
 
-func (this StartNetwork) Train(train datastruct.Input) {
+func (net StartNetwork) Train(train datastruct.Input) {
 
 	in := mat.NewDense(m, 1, train.Row) // [m*1]
-	in1 := mat.NewDense(n, 1, nil)      // [n*1]
-	in1.Mul(this.FirstLvlWeight, in)    // [n*m] * [m*1] = [n*1]
-	out1 := fn.SigmoidMap(in1)
+
+	in1 := mat.NewDense(n, 1, nil)  // [n*1]
+	in1.Mul(net.FirstLvlWeight, in) // [n*m] * [m*1] = [n*1]
+	out1 := fn.SigmoidMap(in1)      // [n*1]
+
 	in2 := mat.NewDense(1, 1, nil)
-	in2.Mul(this.HiddenLvlWeight, out1)
+	in2.Mul(net.HiddenLvlWeight, out1)
 	out2 := fn.SigmoidMap(in2)
 	actual := out2.At(0, 0)
 
@@ -99,11 +101,11 @@ func (this StartNetwork) Train(train datastruct.Input) {
 	dWeight2 := err2 * grad2
 	tmpWeights2 := mat.DenseCopyOf(out1.T()) //
 	tmpWeights2.Scale((-1)*dWeight2*learningRate, tmpWeights2)
-	this.HiddenLvlWeight.Add(this.HiddenLvlWeight, tmpWeights2) // updated weights
+	net.HiddenLvlWeight.Add(net.HiddenLvlWeight, tmpWeights2) // updated weights
 
 	// first layer
 	err1 := mat.NewDense(1, n, nil)
-	err1.Scale(dWeight2, this.HiddenLvlWeight)
+	err1.Scale(dWeight2, net.HiddenLvlWeight)
 	// gradient_layer_1 := SigmoidMapDx(outputs_1)
 	grad1 := fn.SigmoidMapDx(out1)
 	dWeight1 := mat.NewDense(1, n, nil)
@@ -111,15 +113,15 @@ func (this StartNetwork) Train(train datastruct.Input) {
 	tmpWeights1 := mat.NewDense(m, n, nil) // [m*n]
 	tmpWeights1.Mul(in, dWeight1)          // TODO: проверить это [m*1] * [1*n]
 	tmpWeights1.Scale((-1)*learningRate, tmpWeights1)
-	this.FirstLvlWeight.Add(this.FirstLvlWeight, tmpWeights1.T())
+	net.FirstLvlWeight.Add(net.FirstLvlWeight, tmpWeights1.T())
 }
 
-func (this StartNetwork) Predict(in *mat.Dense) float64 {
+func (net StartNetwork) Predict(in *mat.Dense) float64 {
 	in1 := mat.NewDense(n, 1, nil)
-	in1.Mul(this.FirstLvlWeight, in)
+	in1.Mul(net.FirstLvlWeight, in)
 	out1 := fn.SigmoidMap(in1)
 	in2 := mat.NewDense(1, 1, nil)
-	in2.Mul(this.HiddenLvlWeight, out1)
+	in2.Mul(net.HiddenLvlWeight, out1)
 	return fn.SigmoidMap(in2).At(0, 0)
 }
 
