@@ -9,6 +9,7 @@ import (
 	"neural_test/internal/fn"
 
 	"gonum.org/v1/gonum/mat"
+	"neural_test/internal/net"
 )
 
 const (
@@ -45,6 +46,12 @@ func main() {
 		panic(err)
 	}
 
+	//RunStartNetwork()
+	net.RunDanaNetwork()
+}
+
+
+func RunStartNetwork() {
 	net := Init(n, m)
 	t := time.Now().UnixNano()
 
@@ -53,15 +60,15 @@ func main() {
 		for _, elem := range train {
 			net.Train(elem)
 		}
-		var actual_results []float64
-		var correct_results []float64
+		var actualResults []float64
+		var correctResults []float64
 		for _, elem := range train {
 			in1 := mat.NewDense(m, 1, elem.Row)
-			actual_results = append(actual_results, net.Predict(in1))
-			correct_results = append(correct_results, elem.ExpectedPredict)
+			actualResults = append(actualResults, net.Predict(in1))
+			correctResults = append(correctResults, elem.ExpectedPredict)
 		}
 
-		err := fn.MSE(actual_results, correct_results)
+		err := fn.MSE(actualResults, correctResults)
 		fmt.Printf("\rProcess: %v%% ERROR: %1.6v", 100*i/epochs, err)
 		if err < 0.001 {
 			break

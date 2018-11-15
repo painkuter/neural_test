@@ -46,7 +46,6 @@ func Delta(a, b float64) float64 {
 	return math.Sqrt(a*a + b*b)
 }
 
-
 func Sigmoid(x float64) float64 {
 	return 1 / (1 + math.Exp(-x))
 }
